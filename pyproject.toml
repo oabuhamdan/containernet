@@ -16,6 +16,7 @@ dependencies = [
     'python-iptables',
     'pytest',
     'pyyaml',
+    'tcconfig',
 ]
 license = { text = "BSD" }
 keywords = ["networking", "emulator", "protocol", "Internet", "OpenFlow", "SDN"]

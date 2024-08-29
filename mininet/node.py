@@ -878,7 +878,7 @@ class Docker ( Host ):
             ports=defaults['ports'],
             labels=['com.containernet'],
             volumes=[self._get_volume_mount_name(v) for v in self.volumes if self._get_volume_mount_name(v) is not None],
-            hostname=name
+            hostname=name,
         )
 
         # start the container

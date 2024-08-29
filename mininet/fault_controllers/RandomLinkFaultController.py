@@ -8,6 +8,7 @@ import sys
 
 from mininet import log
 from mininet.fault_controllers.BaseFaultController import BaseFaultControllerStarter, BaseFaultController
+from mininet.fault_controllers.AgnosticLink import AgnosticLink
 from mininet.fault_injectors import LinkInjector
 
 class RandomLinkFaultController(BaseFaultController):
@@ -65,8 +66,7 @@ class RandomLinkFaultController(BaseFaultController):
         log.debug("Fault iteration is done\n")
 
     def _get_injectors_for_link(self, link_information_tuple):
-        # (pid, interface name, node name), (pid, interface_name, node_name))
-        link_information_tuple = list(link_information_tuple)
+        # ((pid, interface name, node_name), (pid, interface_name, node_name))
         target_pid_0 = link_information_tuple[0][0]
         target_pid_1 = link_information_tuple[1][0]
 
@@ -117,12 +117,21 @@ class RandomLinkFaultController(BaseFaultController):
 
         self.start_number_of_links = int(config.get("start_links", 1))
         self.end_number_of_links = int(config.get("end_links",  sys.maxsize)) # defaults to "as many links as we have" in go()
-        self.target_links_list = config.get("links", None)
+        target_links_list = config.get("links", None)
+        self.target_links_list = []
+        for link_tuple in target_links_list:
+            corresponding_link_object = AgnosticLink(link1_pid=link_tuple[0][0],
+                                                     link1_name=link_tuple[0][1],
+                                                     link1_node_name=link_tuple[0][2],
+                                                     link2_pid=link_tuple[1][0],
+                                                     link2_name=link_tuple[1][1],
+                                                     link2_node_name=link_tuple[1][2])
+            self.target_links_list.append(corresponding_link_object)
 
         self.mode = config.get("mode", "automatic")
         self.do_next_run = False # Starting immediately after "go" seems unintuitive
 
-        link_fault_regex = "^link_fault:(\w*)$"
+        link_fault_regex = r"^link_fault:(\w*)$"
 
 
         if match := re.match(link_fault_regex, config.get("fault_type")):
@@ -155,7 +164,7 @@ class RandomLinkFaultControllerStarter(BaseFaultControllerStarter):
             controller_config['log'] = log_dict
 
         links_list = []
-        blacklisted_nodes = starter_config.get('nodes_blacklist', {})
+        blacklisted_nodes = starter_config.get('nodes_blacklist', [])
 
         for link in net_reference.links:
             if link.intf1.node.name in blacklisted_nodes or link.intf2.node.name in blacklisted_nodes:
@@ -163,7 +172,7 @@ class RandomLinkFaultControllerStarter(BaseFaultControllerStarter):
                 continue
 
             # list of ((pid, interface name, node name), (pid, interface_name, node_name))
-            link_element = {(
+            link_element = ((
                 link.intf1.node.pid,
                 link.intf1.name,
                 link.intf1.node.name),
@@ -171,9 +180,8 @@ class RandomLinkFaultControllerStarter(BaseFaultControllerStarter):
                 (link.intf2.node.pid,
                  link.intf2.name,
                  link.intf2.node.name)
-            }
+            )
             links_list.append(link_element)
 
         controller_config['links'] = links_list
         return controller_config
-

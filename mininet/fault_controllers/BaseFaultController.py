@@ -100,7 +100,7 @@ class BaseFaultControllerStarter:
         self.send_pipe_mininet_to_faults.send_bytes(MESSAGE_START_NEXT_RUN.encode())
 
     def is_active(self):
-        """Returns true if the controller that was started by this starter is still active, otehrwise False"""
+        """Returns true if the controller that was started by this starter is still active, otherwise False"""
         if not self.faults_are_active:
             return False
         # Injector might have sent us "done" message
@@ -190,8 +190,8 @@ class BaseFaultControllerStarter:
         - for h1->s1:eth0 same as above, but it needs to have the name eth0
         - for h1, never. Only the indicated node will be returned."""
         # These patterns are expected for link_fault s
-        implicit_link_regex = "^(\w*)->(\w*)$"  # matches "host_name->host_name"
-        explicit_link_regex = "^(\w*)->(\w*):([\w|-]*)$"  # matches "host_name->host_name:interface_name", useful if more than one link exists
+        implicit_link_regex = r"^(\w*)->(\w*)$"  # matches "host_name->host_name"
+        explicit_link_regex = r"^(\w*)->(\w*):([\w|-]*)$"  # matches "host_name->host_name:interface_name", useful if more than one link exists
         if identifier_string is None:
             # This can happen for e.g. log commands, that don't need to be executed on a specific host
             return None, None
@@ -222,6 +222,9 @@ class BaseFaultControllerStarter:
                 # If that doesn't work add in the switches/etc. into this list.
                 if node.name == nodename_a:
                     return None, node
+
+            log.warn(f"Could not find host {nodename_a}. Is the name correct?...\n")
+            return None, None
 
         for link in net.links:
             if link.intf1.node.name == nodename_a and link.intf2.node.name == nodename_b:
@@ -269,7 +272,7 @@ class BaseFaultController:
     def __init__(self, controller_config, recv_pipe_mininet_to_faults, send_pipe_mininet_to_faults,
                  recv_pipe_faults_to_mininet, send_pipe_faults_to_mininet):
         self.config = controller_config
-        self.fault_logger = None  # set in config_logger
+        self.fault_logger = None  # set in _config_logger
         self.is_active = False
 
         self.recv_pipe_mininet_to_faults = recv_pipe_mininet_to_faults

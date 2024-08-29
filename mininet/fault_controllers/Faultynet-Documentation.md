@@ -9,9 +9,8 @@ When creating a `Mininet()` instance, the constructor accepts two new arguments:
 When the `Mininet()` is `start()`ed, the net constructs the `faultControllerStarter` with the information from the file at the `faultFilepath` and starts
 it via its `go()` method. 
 When the `faultControllerStarter` is constructed it constructs the `faultController`, which runs in a different process.
-On the call to `go` the `faultControllerStarter` makes sure that the
-Within its `go` method, the `faultControllerStarter` makes sure that the `faultController` `go()` method is also called.
-After that, behavior differs based on the specific FaultController (or, more specifically, will differ, since no other  FaultControllers have been implemented yet).
+On the call to `go` the `faultControllerStarter` makes sure that the `faultController` `go()` method is also called.
+After that, behavior differs based on the specific FaultController.
 
 # Implementing new Controllers
 Note: The following are guidelines and suggestions, other ways of achieving the same outcomes exist

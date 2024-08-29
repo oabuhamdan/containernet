@@ -100,7 +100,7 @@ class MostUsedLinkFaultController(BaseFaultController):
         return number_of_transmitted_packets + number_of_received_packets
 
 
-    def _get_injectors_for_link(self, link_element:AgnosticLink):
+    def _get_injectors_for_link(self, link_element: AgnosticLink):
         # (pid, interface name, node name), (pid, interface_name, node_name))
         target_pid_0 = link_element.link1_pid
         target_pid_1 = link_element.link2_pid
@@ -155,7 +155,6 @@ class MostUsedLinkFaultController(BaseFaultController):
         self.target_links_list = [] # links we could inject into
         self.links_to_inject = [] # links we do inject in this run
         for link_tuple in target_links_list:
-            link_tuple = list(link_tuple)
             corresponding_link_object = AgnosticLink(link1_pid=link_tuple[0][0],
                                         link1_name=link_tuple[0][1],
                                                      link1_node_name=link_tuple[0][2],
@@ -201,7 +200,7 @@ class MostUsedLinkFaultControllerStarter(BaseFaultControllerStarter):
             controller_config['log'] = log_dict
 
         links_list = []
-        blacklisted_nodes = starter_config.get('nodes_blacklist', {})
+        blacklisted_nodes = starter_config.get('nodes_blacklist', [])
 
         for link in net_reference.links:
             if link.intf1.node.name in blacklisted_nodes or link.intf2.node.name in blacklisted_nodes:
@@ -209,7 +208,7 @@ class MostUsedLinkFaultControllerStarter(BaseFaultControllerStarter):
                 continue
 
             # list of ((pid, interface name, node name), (pid, interface_name, node_name))
-            link_element = {(
+            link_element = ((
                 link.intf1.node.pid,
                 link.intf1.name,
                 link.intf1.node.name),
@@ -217,7 +216,7 @@ class MostUsedLinkFaultControllerStarter(BaseFaultControllerStarter):
                 (link.intf2.node.pid,
                  link.intf2.name,
                  link.intf2.node.name)
-            }
+            )
             links_list.append(link_element)
 
         controller_config['links'] = links_list

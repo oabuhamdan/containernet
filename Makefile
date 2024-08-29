@@ -1,9 +1,9 @@
 MININET = mininet/*.py
 TEST = mininet/test/*.py
 EXAMPLES = mininet/examples/*.py
-MN = bin/mn
+MN = mininet/mn.py
 PYTHON ?= python3
-PYMN = $(PYTHON) -B bin/mn
+PYMN = $(PYTHON) -B mininet/mn.py
 BIN = $(MN)
 PYSRC = $(MININET) $(TEST) $(EXAMPLES) $(BIN)
 MNEXEC = mnexec

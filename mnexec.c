@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
             }
             break;
         case 'v':
-            printf("%s\n", "faultynet-pre-alpha");
+            printf("%s\n", VERSION);
             exit(0);
         case 'h':
             usage(argv[0]);

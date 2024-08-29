@@ -269,9 +269,7 @@ class Node( object ):
     def readline( self ):
         """Buffered readline from node, potentially blocking.
            returns: line (minus newline) or None"""
-
         self.readbuf += self.read( 1024 )
-
         if '\n' not in self.readbuf:
             return None
         pos = self.readbuf.find( '\n' )
@@ -293,7 +291,6 @@ class Node( object ):
                 # This ID is used for signaling related processes.
                 # If a command starts just one process, its PID and PGID are the same.
                 os.killpg( self.shell.pid, signal.SIGHUP )
-
         self.cleanup()
 
     def stop( self, deleteIntfs=False ):
@@ -751,7 +748,7 @@ class Docker ( Host ):
         self.did = None # Id of running container
         #  let's store our resource limits to have them available through the
         #  Mininet API later on
-        defaults = { 'cpu_quota': -1,
+        defaults = { 'cpu_quota': None,
                      'cpu_period': None,
                      'cpu_shares': None,
                      'cpuset_cpus': None,
@@ -769,7 +766,10 @@ class Docker ( Host ):
                      'devices': [],
                      'cap_add': ['net_admin'],  # we need this to allow mininet network setup
                      'storage_opt': None,
-                     'sysctls': {}
+                     'sysctls': {},
+                     'shm_size': '64mb',
+                     'cpus': None,
+                     'device_requests': []
                      }
         defaults.update( kwargs )
 
@@ -785,7 +785,9 @@ class Docker ( Host ):
             mem_limit=defaults['mem_limit'],
             memswap_limit=defaults['memswap_limit']
         )
-
+        self.shm_size = defaults['shm_size']
+        self.nano_cpus = defaults['cpus'] * 1_000_000_000 if defaults['cpus'] else None
+        self.device_requests = defaults['device_requests']
         self.volumes = defaults['volumes']
         self.tmpfs = defaults['tmpfs']
         self.environment = {} if defaults['environment'] is None else defaults['environment']
@@ -848,7 +850,10 @@ class Docker ( Host ):
             # access cgroups when modifying resource limits.
             # If you're using cgroupfs use /docker instead
             # cgroup_parent='/docker'
-            cgroup_parent='mininetcgroup.slice'
+            cgroup_parent='mininetcgroup.slice',
+            shm_size=self.shm_size,
+            nano_cpus=self.nano_cpus,
+            device_requests=self.device_requests,
         )
 
         if kwargs.get("rm", False):

@@ -10,7 +10,7 @@ from functools import partial
 from os import O_NONBLOCK
 from resource import getrlimit, setrlimit, RLIMIT_NPROC, RLIMIT_NOFILE
 from select import poll, POLLIN, POLLHUP
-from subprocess import call,run, check_call, Popen, PIPE, STDOUT
+from subprocess import run, check_call, Popen, PIPE, STDOUT
 from sys import exit  # pylint: disable=redefined-builtin
 from time import sleep
 
@@ -78,7 +78,7 @@ except ImportError:
 # Command execution support
 
 def run( cmd ):
-    """Simple interface to subprocess.call()
+    """Simple interface to subprocess.run()
        cmd: list of command params"""
     return run( cmd.split( ' ' ) )
 

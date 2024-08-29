@@ -24,7 +24,7 @@ log:
 ```
 
 ## ConfigFileFaultController
-`ConfigFileFaultController`was designed for repeatable usage in testing pipelines and offers limited interactivity.
+`ConfigFileFaultController` was designed for repeatable usage in testing pipelines and offers limited interactivity.
 This fault controller is automatically started when the corresponding net ist started, and faults are activated 
 and deactivated based on a timer. After all faults have terminated `ConfigFileFaultController` shuts itself down.
 Usually this means that the controller will run for `max(pre_injection_time + injection_time + post_injection_time)`.
@@ -42,7 +42,7 @@ faults:
       pre_injection_time: 0 # int in seconds, defaults to 0
       injection_time: 20 # int in seconds, defaults to 20
       post_injection_time: 0 # int in seconds, defaults to 0
-      type: "link_fault:loss" # "link_fault:delay", "link_fault:loss", "link_fault:corrupt", "link_fault:duplicate", "link_fault:reorder", "link_fault:rate"; "link_fault:down","link_fault:redirect", "link_fault:bottleneck"
+      type: "link_fault:loss" # "link_fault:delay", "link_fault:loss", "link_fault:corrupt", "link_fault:duplicate", "link_fault:reorder", "link_fault:down", "link_fault:redirect", "link_fault:bottleneck"
       type_args: ["10", 10, 10] # Arguments for type. Vary depending on "type". See below for details
       identifiers: # Supports the two patterns below
         - "host_name_a->host_name_b" # Inject on host_name_a, on the interface that links it to host_name_b
@@ -88,7 +88,7 @@ but this is an implementation detail, and could be modified with relatively litt
 Redirects traffic that ingresses at the identified interface, and makes it appear as egress in a different interface.
 The interface to redirect to is `fault_args[0]`, and can be an interface name of the host,
 or an interface as indicated by a `a->b` pattern.
-`fault_args[1]` can macht `mirror` (to copy to packets from the source interface) or `redirect`
+`fault_args[1]` can match `mirror` (to copy to packets from the source interface) or `redirect`
 (to remove the packets from the source interface). Defaults to `redirect`.
 
 Only works for `persistent` and `burst` patterns, so all traffic of a type must be redirected. A probabilistic fault
@@ -96,7 +96,10 @@ would require adding a filter for random packets to an interface, which is likel
 
 #### link_fault:bottleneck
 Makes the link act as a bottleneck. Implemented as a token bucket filter,
-with `fault_args[0]` as rate in kbit, (no default), `fault_args[1]` (default:1600) as burst size, and `fault_args[2]` default(3000) as limit on the number of bytes that can be stored while waiting for tokens to become available
+with `fault_args[0]` as rate in kbit/s, (no default), `fault_args[1]` (default: 1600 bytes) as burst size, and `fault_args[2]` (default: 3000 bytes) as limit on the number of bytes that can be stored while waiting for tokens to become available.
+
+#### link_fault:loss | link_fault:corrupt | link_fault:duplicate | link_fault:reorder
+Implement the respective functions of tc-netem. They don't have fault arguments. Use the random or degradation patterns to specify the percentage of packets these are applied on. Persistent applies them to 100% of all packets and burst applies them to 100% of packets when the burst is active.
 
 #### node_fault:cpu-stress
 Adds work to the CPU on which the indicated node is running. Probably only makes sense when using CPULimitedHost, or otherwise limited hosts.
@@ -113,38 +116,39 @@ Do note that these commands are executed from the host file system, but within t
 adding the `--all` flag to the executed `nsenter` command.
 
 ### Patterns
-#### burst
-Fault is activated in bursts. Each burst has a length of `pattern_args[0]` (in ms) The burst period is defined in `pattern_args[1]` (in ms)
-which means that between each burst there is `pattern_args[1] - pattern_args[0]` ms downtime between each burst.
-#### degradation
-Fault starts small, but becomes increasingly bigger as time moves on. The initial value is `pattern_args[2]` (default:0),
-the step size is `pattern_args[0]` (default:5). Each step takes `pattern_args[1]`ms (default: 1000),
-and the maximum value is `pattern_args[3]` (default:100). For link_faults
-the maximal maximum value is 100, since these are percentage based. 
-
-These values overwrite values specified in fault_args.
+#### persistent
+Applies the fault to the given link, with a probability of 100%.
 #### random
 Applies the fault with a probability of `100-fault_pattern_args[0]` percent
 to the indicated traffic.
 
 Only available for link_faults.
-#### persistent
-Applies the fault to the given link, with a probability of 100%.
+#### burst
+Fault is activated in bursts. Each burst has a length of `pattern_args[0]` (in ms) The burst period is defined in `pattern_args[1]` (in ms)
+which means that between each burst there is `pattern_args[1] - pattern_args[0]` ms downtime between each burst. Both values are required and don't have a default.
+The probability of the fault is set to 100% (like with persistent)
+#### degradation
+Fault starts small, but becomes increasingly bigger as time moves on. The initial value is `pattern_args[2]` (default:0),
+the step size is `pattern_args[0]` (default:5). Each step takes `pattern_args[1]`ms (default: 1000),
+and the value is capped at `pattern_args[3]` (default:100). For link_faults
+the maximal maximum value is 100, since these are percentage based.
+
+These values overwrite values specified in fault_args.
 
 
 ## RandomLinkFaultController
 `RandomLinkFaultController` was designed for simple chaos-monkey style tests. The Controller starts by injecting faults on
 `start_links` links in the first iteration. Each iteration runs for `injection_time` seconds.
-Once this iteration is done, it injects faults on  `start_links + 1` links, until it finally injects faults into `end_links` links.
+Once this iteration is done, it injects faults on `start_links + 1` links, until it finally injects faults into `end_links` links.
 Afterward the controller terminates, unless in `repeating`mode. In `repeating` mode, the controller starts
 from the beginning, e.g. injects `start_links` random links with faults.
 
 `RandomLinkFaultController` supports three modes, defined via `mode`: In `"automatic"` mode, an iteration is started immediately
-after the previous iteration finishes. In `manual` mode, each iteration is started only after the 
+after the previous iteration finishes. In `manual` mode, each iteration is started only after the
 `RandomLinkFaultControllerStarter.start_next_run()` function is called. This includes the first iteration, which is not immediately
 started after calling `go()`. `go()` still needs to be called before any calls to `start_next_run()`, to activate the Controller.
 The third mode is `repeating`, which behaves exactly as `manual` mode, with the difference that after the iteration with
-`end_links` injection targets it begins anew with `start_links` injection targets.
+`end_links` injection targets it begins a new iteration with `start_links` injection targets.
 The fault controller can be prematurely shut down by calling `RandomLinkFaultControllerStarter.stop()`. This will shut the
 controller down after the current iteration finishes.
 

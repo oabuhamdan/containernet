@@ -6,7 +6,7 @@ faults:
       injection_time: 10
       post_injection_time: 5
       type: "link_fault:down"
-      identifiers: 
+      identifiers:
         - "h1->s1"
       pattern: "persistent"
 log:

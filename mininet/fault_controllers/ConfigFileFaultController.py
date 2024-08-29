@@ -1,4 +1,4 @@
-"""ConfigFileFaultController implements a fault injector that defines faults from a single ocnfiguration file.
+"""ConfigFileFaultController implements a fault injector that defines faults from a single configuration file.
  For details, see FaultControllersREADME.md"""
 import asyncio
 import re
@@ -59,9 +59,9 @@ class ConfigFileFaultController(BaseFaultController):
                 log.warn("No fault type set\n")
                 continue
 
-            link_fault_regex = "^link_fault:(\w*)$"
-            multi_fault_regex = "^multi_fault$"
-            node_fault_regex = "^node_fault:(\w*)$"
+            link_fault_regex = r"^link_fault:(\w*)$"
+            multi_fault_regex = r"^multi_fault$"
+            node_fault_regex = r"^node_fault:(\w*)$"
 
             if match := re.match(link_fault_regex, fault_type_value):
                 fault_type = match.groups()[0]
@@ -156,7 +156,7 @@ class ConfigFileFaultControllerStarter(BaseFaultControllerStarter):
                 # Identifiers are in a->b or a->b:interface pattern, or in "a" node pattern
                 node_identifying_tuple = ConfigFileFaultControllerStarter._get_mininet_agnostic_identifiers_from_identifier_string(
                     net, identifier_string)
-                new_identifier_strings.append((repr(node_identifying_tuple)))
+                new_identifier_strings.append(repr(node_identifying_tuple))
             fault_dict['identifiers'] = new_identifier_strings
 
             # If it's a 'redirect' fault, we also need to enrich the redirect-to interface, in the fault_type_args

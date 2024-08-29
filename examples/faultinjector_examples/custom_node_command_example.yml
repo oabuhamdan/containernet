@@ -6,7 +6,7 @@ faults:
       post_injection_time: 5
       type: "node_fault:custom"
       type_args: ['echo "persistent on $(date)" >> custom_node_command_test.txt', 'echo "off $(date)" >> custom_node_command_test.txt']
-      identifiers: 
+      identifiers:
         - "h1"
       pattern: "persistent"
   - node_fault:

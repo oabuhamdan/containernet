@@ -6,7 +6,7 @@ faults:
       post_injection_time: 5
       type: "node_fault:stress_cpu"
       type_args: ['80']
-      identifiers: 
+      identifiers:
         - "h1"
       pattern: "persistent"
   - node_fault:

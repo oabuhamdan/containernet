@@ -8,8 +8,8 @@ def run(*args, **kwargs):
     result = co(*args, **kwargs)
     return result.decode() if version_info[ 0 ] >= 3 else result
 
-# Actually run bin/mn rather than importing via python path
-version = 'Mininet ' + run( 'PYTHONPATH=. bin/mn --version 2>&1', shell=True )
+# Actually run mininet/mn.py rather than importing via python path
+version = 'Mininet ' + run( 'PYTHONPATH=. mininet/mn.py --version 2>&1', shell=True )
 version = version.strip()
 
 # Find all Mininet path references

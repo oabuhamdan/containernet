@@ -173,21 +173,15 @@ function mn_deps {
 			ethtool help2man python-pyflakes python3-pylint \
                         python-pep8 ${PYPKG}-pexpect ${PYPKG}-tk
     else  # Debian/Ubuntu
-        pf=pyflakes
-        # Starting around 20.04, installing pyflakes instead of pyflakes3
-        # causes Python 2 to be installed, which is exactly NOT what we want.
-        if [ `expr $RELEASE '>=' 20.04` = "1" ]; then
-                pf=pyflakes3
-        fi
         $install gcc make socat psmisc xterm ssh iperf telnet \
-                 ethtool help2man $pf pylint pep8 \
+                 ethtool help2man pyflakes3 pylint python3-pep8 \
                  net-tools \
                  ${PYPKG}-pexpect ${PYPKG}-tk
         # Install pip
         $install ${PYPKG}-pip || $install ${PYPKG}-pip-whl
         if ! ${PYTHON} -m pip -V; then
             if [ $PYTHON_VERSION == 2 ]; then
-                wget https://bootstrap.pypa.io/2.6/get-pip.py
+                wget https://bootstrap.pypa.io/pip/2.6/get-pip.py
             else
                 wget https://bootstrap.pypa.io/get-pip.py
             fi
@@ -198,8 +192,8 @@ function mn_deps {
         $install cgroup-tools || $install cgroup-bin
     fi
 
-    echo "Installing Faultynet core"
-    pushd $MININET_DIR/faultynet
+    echo "Installing Containernet core"
+    pushd $MININET_DIR/containernet
     sudo PYTHON=${PYTHON} make install
     popd
 }
@@ -235,7 +229,7 @@ function of {
     cd $BUILD_DIR/openflow
 
     # Patch controller to handle more than 16 switches
-    patch -p1 < $MININET_DIR/faultynet/util/openflow-patches/controller.patch
+    patch -p1 < $MININET_DIR/containernet/util/openflow-patches/controller.patch
 
     # Resume the install:
     ./boot.sh
@@ -303,7 +297,7 @@ function install_wireshark {
     # Copy coloring rules: OF is white-on-blue:
     echo "Optionally installing wireshark color filters"
     mkdir -p $HOME/.wireshark
-    cp -n $MININET_DIR/faultynet/util/colorfilters $HOME/.wireshark
+    cp -n $MININET_DIR/containernet/util/colorfilters $HOME/.wireshark
 
     echo "Checking Wireshark version"
     WSVER=`wireshark -v | egrep -o '[0-9\.]+' | head -1`
@@ -320,7 +314,7 @@ function install_wireshark {
 
     # Copy into plugin directory
     # libwireshark0/ on 11.04; libwireshark1/ on later
-    WSDIR=`find /usr/lib -type d -name 'libwireshark*' | head -1`
+    WSDIR=`find /usr/lib* -type d -name '*wireshark*' | head -1`
     WSPLUGDIR=$WSDIR/plugins/
     PLUGIN=loxi_output/wireshark/openflow.lua
     sudo cp $PLUGIN $WSPLUGDIR
@@ -557,9 +551,9 @@ function nox {
 
     # Apply patches
     git checkout -b tutorial-destiny
-    git am $MININET_DIR/faultynet/util/nox-patches/*tutorial-port-nox-destiny*.patch
+    git am $MININET_DIR/containernet/util/nox-patches/*tutorial-port-nox-destiny*.patch
     if [ "$DIST" = "Ubuntu" ] && version_ge $RELEASE 12.04; then
-        git am $MININET_DIR/faultynet/util/nox-patches/*nox-ubuntu12-hacks.patch
+        git am $MININET_DIR/containernet/util/nox-patches/*nox-ubuntu12-hacks.patch
     fi
 
     # Build

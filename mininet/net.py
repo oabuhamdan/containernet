@@ -531,7 +531,7 @@ class Mininet( object ):
             # it needs to be done somewhere.
         info( '\n' )
 
-    def buildFromTopo( self, topo=None ): # is this relevant for us?
+    def buildFromTopo( self, topo=None ):
         """Build mininet from a topology object
            At the end of this function, everything should be connected
            and up."""
@@ -622,7 +622,6 @@ class Mininet( object ):
                 if src != dst:
                     src.setARP( ip=dst.IP(), mac=dst.MAC() )
 
-
     def start( self ):
         "Start controller and switches."
         if not self.built:
@@ -711,6 +710,8 @@ class Mininet( object ):
         h1 = hosts[ 0 ]  # so we can call class method fdToNode
         for host in hosts:
             poller.register( host.stdout )
+        if self.faultFilepath is not None:
+            self.faultControllerStarter.stop()
         while True:
             ready = poller.poll( timeoutms )
             for fd, event in ready:

@@ -17,6 +17,9 @@ dependencies = [
     'pytest',
     'pyyaml',
     'tcconfig',
+    'backports.ssl-match-hostname',
+    'pexpect',
+    'aiofiles',
 ]
 license = { text = "BSD" }
 keywords = ["networking", "emulator", "protocol", "Internet", "OpenFlow", "SDN"]

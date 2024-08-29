@@ -379,11 +379,11 @@ class LinkInjector:
 
         if node_pid is None:
             # Node is not in a network namespace, so base command doesn't need to enter a namespace
-            base_command_tc = 'tc'
+            base_command = ''
         else:
-            base_command_tc = 'nsenter --target ' + str(node_pid) + ' --net tc '
+            base_command = 'nsenter --target ' + str(node_pid) + ' --net '
 
-        base_qdisc_netem_command = base_command_tc + 'qdisc ' + tc_cmd + ' dev ' + device + ' root netem '
+        base_qdisc_netem_command = base_command + 'tc qdisc ' + tc_cmd + ' dev ' + device + ' root netem '
         # base command is not used for redirects, since those don't use tc netem
         command = None
 
@@ -423,12 +423,12 @@ class LinkInjector:
 
                     # ingress qdiscs don't seem to respect their assigned handle, they always fall back to ffff, so
                     # change at your own risk
-                    prep_command = base_command_tc + 'qdisc ' + tc_cmd + ' dev ' + device + ' handle ffff: ingress '
-                    command = base_command_tc + 'filter ' + tc_cmd + ' dev ' + device + f' parent ffff: {filter_string} ' + \
+                    prep_command = base_command + 'tc qdisc ' + tc_cmd + ' dev ' + device + ' handle ffff: ingress '
+                    command = base_command + 'tc filter ' + tc_cmd + ' dev ' + device + f' parent ffff: {filter_string} ' + \
                         ' action mirred egress ' + redirect_or_mirror + ' dev ' + destination_interface  # get parent
                     command = prep_command + " ; " + command
                 elif 'del' in tc_cmd:
-                    command = base_command_tc + 'qdisc ' + tc_cmd + ' dev ' + device + ' ingress '
+                    command = base_command + 'tc qdisc ' + tc_cmd + ' dev ' + device + ' ingress '
             else:
                 # in that case for corruption and loss we can use the 'fault_args' that already include random probability
                 command = base_qdisc_netem_command + fault_type + ' ' + str(fault_pattern_args[0]) + '%'
@@ -446,7 +446,7 @@ class LinkInjector:
                     default_limit_burst = str(fault_args[2])
                 elif len(fault_args) == 2:
                     default_bottleneck_burst = str(fault_args[1])
-                command = (base_command_tc + ' qdisc ' + tc_cmd + ' dev '
+                command = (base_command + 'tc qdisc ' + tc_cmd + ' dev '
                            + device + ' root tbf rate ' + fault_args[
                                0] + 'kbit burst ' + default_bottleneck_burst + ' limit ' + default_limit_burst)
             elif 'redirect' in fault_type:
@@ -464,18 +464,18 @@ class LinkInjector:
                 if 'add' in tc_cmd:
                     # ingress qdiscs don't seem to respect their assigned handle, they always fall back to ffff, so
                     # change at your own risk
-                    prep_command = base_command_tc + 'qdisc ' + tc_cmd + ' dev ' + device + ' handle ffff: ingress '
-                    command = base_command_tc + 'filter ' + tc_cmd + ' dev ' + device + ' parent ffff: matchall ' + \
+                    prep_command = base_command + 'tc qdisc ' + tc_cmd + ' dev ' + device + ' handle ffff: ingress '
+                    command = base_command + 'tc filter ' + tc_cmd + ' dev ' + device + ' parent ffff: matchall ' + \
                               ' action mirred egress ' + redirect_or_mirror + ' dev ' + destination_interface  # get parent
                     command = prep_command + " ; " + command
                 elif 'del' in tc_cmd:
-                    command = base_command_tc + 'qdisc ' + tc_cmd + ' dev ' + device + ' ingress '
+                    command = base_command + 'tc qdisc ' + tc_cmd + ' dev ' + device + ' ingress '
 
             elif 'down' in fault_type:
                 if 'add' in tc_cmd:
-                    command = 'ifconfig ' + device + ' down'
+                    command = base_command + 'ifconfig ' + device + ' down'
                 elif 'del' in tc_cmd:
-                    command = 'ifconfig ' + device + ' up'
+                    command = base_command + 'ifconfig ' + device + ' up'
             else:
                 # in that case for corruption and loss we can use the 'fault_args' to set 100% probability
                 command = base_qdisc_netem_command + fault_type + ' 100%'
@@ -496,23 +496,23 @@ class LinkInjector:
 
         if node_pid is None:
             # Node is not in a network namespace, so base command doesn't need to enter a namespace
-            base_command_tc = "tc "
+            base_command = ''
         else:
-            base_command_tc = 'nsenter --target ' + str(node_pid) + ' --net ' + "tc "
+            base_command = 'nsenter --target ' + str(node_pid) + ' --net '
 
         if enable:
             if 'redirect' in fault_type:
                 # We need to work with the ingress qdisc instead of the default one, so add that one instead
                 # almost the same as prep_command from redirect of all protocols
-                cmd_list = [base_command_tc + 'qdisc add dev ' + device + ' handle ffff: ingress ']
+                cmd_list = [base_command + 'tc qdisc add dev ' + device + ' handle ffff: ingress ']
                 # For some reason using handle 1: ingress still leads to a ffff handle
                 # (tc qdisc show dev s1-eth1 gives output of qdisc ingress ffff: parent ffff:fff1)
                 # I'm not completely sure why?
             else:
-                cmd_list = [base_command_tc + 'qdisc add dev ' + device + ' root handle 1: prio']
+                cmd_list = [base_command + 'tc qdisc add dev ' + device + ' root handle 1: prio']
 
             # The parent is wrong if fault_type is redirect. This will be fixed later
-            base_qdisc_netem_command = base_command_tc + 'filter add dev ' + device + ' parent 1:0 protocol ip prio 1 u32 '
+            base_qdisc_netem_command = base_command + 'tc filter add dev ' + device + ' parent 1:0 protocol ip prio 1 u32 '
             target_protocol_cmd = 'match ip protocol ' + self.target_protocol_table[target_protocol] + ' 0xff'
 
             # redirect needs no special case here, since these are added to the qdisc as defined by tag
@@ -535,12 +535,12 @@ class LinkInjector:
                     # e.g., tc qdisc add dev tap0897f3c6-e0 root netem delay 50ms reorder 50%
                     random_perc = 100 - int(fault_pattern_args[0])
                     cmd_list.append(
-                        base_command_tc + 'qdisc add dev ' + device + ' parent 1:1 handle 2: netem ' + fault_type + ' ' +
+                        base_command + 'tc qdisc add dev ' + device + ' parent 1:1 handle 2: netem ' + fault_type + ' ' +
                         fault_args[0] + ' reorder ' + str(
                             random_perc) + '%')
                 else:
                     cmd_list.append(
-                        base_command_tc + 'qdisc add dev ' + device + ' parent 1:1 handle 2: netem ' + fault_type + ' ' + str(
+                        base_command + 'tc qdisc add dev ' + device + ' parent 1:1 handle 2: netem ' + fault_type + ' ' + str(
                             fault_pattern_args[0]) + '%')
             elif 'persistent' in fault_pattern:
                 if 'bottleneck' in fault_type:
@@ -553,7 +553,7 @@ class LinkInjector:
                     if len(fault_args) == 2:
                         default_bottleneck_burst = str(fault_args[1])
                     cmd_list.append(
-                        base_command_tc + 'qdisc add dev ' + device + ' parent 1:1 handle 2: tbf rate ' + fault_args[
+                        base_command + 'tc qdisc add dev ' + device + ' parent 1:1 handle 2: tbf rate ' + fault_args[
                             0] + 'kbit burst ' + default_bottleneck_burst + ' limit ' + default_limit_burst)
                 elif 'redirect' in fault_type:
                     destination_interface = fault_args[0]
@@ -580,14 +580,14 @@ class LinkInjector:
                     else:
                         tc_arg = '100%'
                     cmd_list.append(
-                        base_command_tc + ' qdisc add dev ' + device + ' parent 1:1 handle 2: netem ' + fault_type + ' ' + tc_arg)
+                        base_command + 'tc qdisc add dev ' + device + ' parent 1:1 handle 2: netem ' + fault_type + ' ' + tc_arg)
         else:
             cmd_list = []
             if 'redirect' in fault_type:
                 # We added a different queue, so we need to delete a different one
-                cmd_list.append(base_command_tc + 'qdisc del dev ' + device + ' ingress ')
+                cmd_list.append(base_command + 'tc qdisc del dev ' + device + ' ingress ')
             else:
-                cmd_list.append(base_command_tc + ' qdisc del dev ' + device + ' root handle 1: prio')
+                cmd_list.append(base_command + 'tc qdisc del dev ' + device + ' root handle 1: prio')
 
         log.debug("cmd_list generated => %s\n" % cmd_list)
 

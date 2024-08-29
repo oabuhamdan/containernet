@@ -166,7 +166,7 @@ class MostUsedLinkFaultController(BaseFaultController):
         self.mode = config.get("mode", "automatic")
         self.do_next_run = False # Starting immediately after "go" seems unintuitive
 
-        link_fault_regex = "^link_fault:(\w*)$"
+        link_fault_regex = r"^link_fault:(\w*)$"
 
 
         if match := re.match(link_fault_regex, config.get("fault_type")):

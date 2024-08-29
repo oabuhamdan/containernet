@@ -171,8 +171,8 @@ class BaseFaultControllerStarter:
     @staticmethod
     def _is_string_in_arrow_pattern(net: 'Mininet', identifier_string) -> bool:
         """Returns true if the string is in the h1->s1:eth0 or h1->s1 pattern"""
-        implicit_link_regex = "^(\w*)->(\w*)$"  # matches "host_name->host_name"
-        explicit_link_regex = "^(\w*)->(\w*):(\w*)$"  # matches "host_name->host_name:interface_name", useful if more than one link exists
+        implicit_link_regex = r"^(\w*)->(\w*)$"  # matches "host_name->host_name"
+        explicit_link_regex = r"^(\w*)->(\w*):([\w|-]*)$"  # matches "host_name->host_name:interface_name", useful if more than one link exists
         if match := re.match(implicit_link_regex, identifier_string):
             return True
         if match := re.match(explicit_link_regex, identifier_string):

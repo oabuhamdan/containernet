@@ -53,8 +53,8 @@ class RandomLinkFaultController(BaseFaultController):
 
         links_to_inject = random.sample(self.target_links_list, number_of_links_to_inject)
 
-        for link_information_tuple in links_to_inject:
-            injector0, injector1 = self._get_injectors_for_link(link_information_tuple)
+        for link_element in links_to_inject:
+            injector0, injector1 = self._get_injectors_for_link(link_element)
             faults_for_run.append(injector0)
             faults_for_run.append(injector1)
 
@@ -65,16 +65,15 @@ class RandomLinkFaultController(BaseFaultController):
         await asyncio.gather(*fault_coroutines)
         log.debug("Fault iteration is done\n")
 
-    def _get_injectors_for_link(self, link_information_tuple):
-        # ((pid, interface name, node_name), (pid, interface_name, node_name))
-        target_pid_0 = link_information_tuple[0][0]
-        target_pid_1 = link_information_tuple[1][0]
+    def _get_injectors_for_link(self, link_element):
+        target_pid_0 = link_element.link1_pid
+        target_pid_1 = link_element.link2_pid
 
-        target_interface_0 = link_information_tuple[0][1]
-        target_interface_1 = link_information_tuple[1][1]
+        target_interface_0 = link_element.link1_name
+        target_interface_1 = link_element.link2_name
 
-        target_nodename_0 = link_information_tuple[0][2]
-        target_nodename_1 = link_information_tuple[1][2]
+        target_nodename_0 = link_element.link1_node_name
+        target_nodename_1 = link_element.link2_node_name
 
         tag_0 = f"{target_nodename_0}:{target_interface_0}->{target_nodename_1}:{target_interface_1}"
         tag_1 = f"{target_nodename_1}:{target_interface_1}->{target_nodename_0}:{target_interface_0}"

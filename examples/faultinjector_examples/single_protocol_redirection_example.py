@@ -50,12 +50,12 @@ async def redirect_single_protocol_test(net: Mininet):
     h2.cmd("ifconfig h2-eth0 inet6 add fc00::2/64")
     h3.cmd("ifconfig h3-eth0 inet6 add fc00::3/64")
 
-    log.info(s1.cmd("sudo /usr/sbin/tc qdisc show dev s1-eth1 > qdis1.txt 2>&1") + "\n")
+    log.info(s1.cmd("sudo tc qdisc show dev s1-eth1 > qdis1.txt 2>&1") + "\n")
 
     # Wait for faults to activate
     await asyncio.sleep(4)
-    log.info(s1.cmd("sudo /usr/sbin/tc filter show dev s1-eth1 root > config_icmp_redirect_only.txt 2>&1") + "\n")
-    log.info(s1.cmd("sudo /usr/sbin/tc qdisc show dev s1-eth1 > qdisc_icmp_redirect_only.txt 2>&1") + "\n")
+    log.info(s1.cmd("sudo tc filter show dev s1-eth1 root > config_icmp_redirect_only.txt 2>&1") + "\n")
+    log.info(s1.cmd("sudo tc qdisc show dev s1-eth1 > qdisc_icmp_redirect_only.txt 2>&1") + "\n")
 
     log.info(h1.cmd("timeout 16 tcpdump -i h1-eth0 -w pcap_h1-s1-post.pcap&") + "\n")
     log.info(s1.cmd("timeout 16 tcpdump -i s1-eth3 -w pcap_s1-h3-post.pcap&") + "\n")
@@ -67,7 +67,7 @@ async def redirect_single_protocol_test(net: Mininet):
 
 
     await asyncio.sleep(4)
-    log.info(s1.cmd("sudo /usr/sbin/tc filter show dev s1-eth1 root > post_redirect_removal.txt 2>&1") + "\n")
+    log.info(s1.cmd("sudo tc filter show dev s1-eth1 root > post_redirect_removal.txt 2>&1") + "\n")
 
 
 def fault_example_scenario():

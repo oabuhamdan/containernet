@@ -9,7 +9,12 @@ At this point in time three different fault controller are implemented:
 - MostUsedFaultController, which inserts pre-defined faults into the busiest links
 
 For more details on how to use these fault controller see the [FaultControllersREADME](FaulControllersREADME.md) file.
-For more implementation details see the [Documentation](Documentation.md) file. 
+For more implementation details see the [Documentation](Documentation.md) file.
+
+## Installation
+Faultynet requires `libcgroup1` to be installed on your system. This package is (as of time of writing) not present in apt for ubuntu 24.04, but you can still find .deb files on the internet to install.
+
+Faultynet also needs legacy cgroups. You need to add `SYSTEMD_CGROUP_ENABLE_LEGACY_FORCE=1 systemd.unified_cgroup_hierarchy=0` to your kernel parameters and reboot. If you are using grub, you can add this parameters by appending them to `GRUB_CMDLINE_LINUX_DEFAULT` in `/etc/default/grub` and running `sudo grub-mkconfig -o /boot/grub/grub.cfg`
 
 ## Hello World
 After installation, create a yml file with the following contents:

@@ -194,7 +194,7 @@ function mn_deps {
 
     echo "Installing Containernet core"
     pushd $MININET_DIR/containernet
-    sudo PYTHON=${PYTHON} make install
+    sudo PYTHON=${PYTHON} make install-mnexec install-manpages
     popd
 }
 
@@ -230,6 +230,9 @@ function of {
 
     # Patch controller to handle more than 16 switches
     patch -p1 < $MININET_DIR/containernet/util/openflow-patches/controller.patch
+
+    # Fix common bug under ubuntu where strlcpy is already defined
+    patch -p1 < $MININET_DIR/containernet/util/openflow-patches/strlcpy.patch
 
     # Resume the install:
     ./boot.sh

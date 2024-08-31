@@ -36,7 +36,7 @@ readme = "README.md"
 mn = "mininet.mn:main"
 
 [tool.setuptools]
-packages = ["mininet", "mininet.examples"]
+packages = ["mininet", "mininet.examples", "mininet.fault_controllers"]
 
 [tool.setuptools.dynamic]
 version = { attr = "mininet.net.CONTAINERNET_VERSION" }

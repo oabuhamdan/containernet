@@ -61,7 +61,7 @@ pip install -e . --no-binary :all:
 pip install .
 ```
 
-You might also encounter an issue in "build and install Containernet (using Mininet installer)", where the error is something with strlcpy missing. On modern Ubuntu systems, strlcpy is provided by the system, but if it is not, you can remove this line in `util/install.sh`.
+You might also encounter an issue in "build and install Containernet (using Mininet installer)", where the error is something with `strlcpy` missing. On modern Ubuntu systems, strlcpy is provided by the system, but if it is not, you can remove this line in `util/install.sh` to include `strlcpy` in the openflow install.
 
 ```sh
 patch -p1 < $MININET_DIR/containernet/util/openflow-patches/strlcpy.patch

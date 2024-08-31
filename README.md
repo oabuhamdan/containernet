@@ -50,6 +50,23 @@ sudo ansible-playbook -i "localhost," -c local containernet/ansible/install.yml
 
 After the installation finishes, you should be able to [get started](#get-started).
 
+You might encounter an issue in "install Containernet Python egg etc." where pip won't install packages system-wide because the environment is externally managed. In this case run the following commands to install mininet to a virtualenv afterwards:
+
+```sh
+python3 -m venv venv
+source venv/bin/activate
+# If you want to install containernet in "edit" mode
+pip install -e . --no-binary :all:
+# If you want to install containernet in "normal" mode
+pip install .
+```
+
+You might also encounter an issue in "build and install Containernet (using Mininet installer)", where the error is something with strlcpy missing. On modern Ubuntu systems, strlcpy is provided by the system, but if it is not, you can remove this line in `util/install.sh`.
+
+```sh
+patch -p1 < $MININET_DIR/containernet/util/openflow-patches/strlcpy.patch
+```
+
 ### Option 2: Nested Docker deployment
 
 Containernet can be executed within a privileged Docker container (nested container deployment). There is also a pre-build Docker image available on [Docker Hub](https://hub.docker.com/r/containernet/containernet/).

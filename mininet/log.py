@@ -135,7 +135,8 @@ class MininetLogger( Logger, object ):
         if getattr( self.manager, 'disabled', 0 ) >= OUTPUT:
             return
         if self.isEnabledFor( OUTPUT ):
-            self._log( OUTPUT, msg, args, kwargs )
+            kwargs['stacklevel'] = kwargs.get('stacklevel', 1) + 1
+            self._log( OUTPUT, msg, args, **kwargs )
 
 
 # Make things a bit more convenient by adding aliases

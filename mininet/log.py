@@ -24,7 +24,7 @@ LOGLEVELDEFAULT = OUTPUT
 
 
 # default: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-LOGMSGFORMAT = '%(filename)s %(lineno)d  %(message)s'
+LOGMSGFORMAT = '%(message)s'
 
 
 # Modified from python2.5/__init__.py

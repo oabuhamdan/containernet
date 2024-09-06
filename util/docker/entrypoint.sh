@@ -11,6 +11,8 @@ fi
 
 echo "Welcome to Containernet running within a Docker container ..."
 
+source /opt/venv/bin/activate
+
 if [[ $# -eq 0 ]]; then
     exec /bin/bash
 else

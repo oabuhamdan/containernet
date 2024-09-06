@@ -10,16 +10,16 @@ authors = [
 ]
 description = "Mininet fork that adds Container support."
 dependencies = [
-    'setuptools',
-    'urllib3',
-    'docker',
-    'python-iptables',
-    'pytest',
-    'pyyaml',
-    'tcconfig',
-    'backports.ssl-match-hostname',
-    'pexpect',
-    'aiofiles',
+    "setuptools",
+    "urllib3",
+    "docker",
+    "python-iptables",
+    "pytest",
+    "pyyaml",
+    "tcconfig",
+    "backports.ssl-match-hostname",
+    "pexpect",
+    "aiofiles",
 ]
 license = { text = "BSD" }
 keywords = ["networking", "emulator", "protocol", "Internet", "OpenFlow", "SDN"]

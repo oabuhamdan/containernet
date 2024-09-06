@@ -46,15 +46,17 @@
      shell: "which pip3"
      register: pip_path
 
-   - name: build and install Containernet (using Mininet installer)
+   - name: build and install Containernet dependencies (using Mininet installer)
      shell: PYTHON=python3 containernet/util/install.sh -fnv
      args:
        chdir: ../../
 
-   - name: install Containernet Python egg etc.
-     shell: make -f Makefile develop
+   - name: install Containernet binaries
+     shell: make -f Makefile install-mnexec install-manpages
      args:
        chdir: ../
+     tags:
+       - notindocker
 
    - name: download 'ubuntu' docker image for Containernet example
      shell: docker pull ubuntu:trusty

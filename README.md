@@ -28,7 +28,7 @@ Containernet comes with two installation and deployment options.
 
 ### Option 1: Bare-metal installation
 
-This option is the most flexible. Your machine should run Ubuntu **20.04 LTS** and **Python3**.
+This option is the most flexible. Your machine should run at least Ubuntu **22.04 LTS** and **Python3**.
 
 First install Ansible:
 
@@ -42,17 +42,15 @@ Then clone the repository:
 git clone https://github.com/containernet/containernet.git
 ```
 
-Finally run the Ansible playbook to install required dependencies:
+Run the Ansible playbook to install required dependencies:
 
 ```bash
 sudo ansible-playbook -i "localhost," -c local containernet/ansible/install.yml
 ```
 
-After the installation finishes, you should be able to [get started](#get-started).
+Finally, install Containernet inside a virtual env. Installing Containernet as root is not possible anymore starting from Ubuntu 24.04 and does not work on Ubuntu 22.04 because of [a setuptools issue](https://github.com/pypa/setuptools/issues/4483)
 
-You might encounter an issue in "install Containernet Python egg etc." where pip won't install packages system-wide because the environment is externally managed. In this case run the following commands to install mininet to a virtualenv afterwards:
-
-```sh
+```bash
 python3 -m venv venv
 source venv/bin/activate
 # If you want to install containernet in "edit" mode
@@ -61,11 +59,7 @@ pip install -e . --no-binary :all:
 pip install .
 ```
 
-You might also encounter an issue in "build and install Containernet (using Mininet installer)", where the error is something with `strlcpy` missing. On modern Ubuntu systems, strlcpy is provided by the system, but if it is not, you can remove this line in `util/install.sh` to include `strlcpy` in the openflow install and just rerun ansible.
-
-```sh
-patch -p1 < $MININET_DIR/containernet/util/openflow-patches/strlcpy.patch
-```
+After the installation finishes, you should be able to [get started](#get-started).
 
 ### Option 2: Nested Docker deployment
 

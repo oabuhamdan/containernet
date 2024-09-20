@@ -1,6 +1,6 @@
 # Faultynet Documentation
 
-Most Faultynet behavior is Faultcontroller specific. For details on existing Faultcontrollers, see [FaultControllersREADME.md](FaultControllersREADME.md)
+Most Faultynet behavior is Faultcontroller specific. For details on existing Faultcontrollers, see [FaultyControllers](FaultyControllers.md)
 
 When creating a `Mininet()` instance, the constructor accepts two new arguments: 
   - `faultControllerStarter`, which refers to a class, and defaults to `ConfigFileFaultControllerStarter`
@@ -52,7 +52,7 @@ To inject a fault, construct a `LinkInjector`, `MultiInjecor` or `NodeInjector`,
   - This means that injecting a fault on one link requires to `LinkInjector`s, one for each interface at the ends of the link
   - One fault can lead to multiple commands being executed on a host, e.g. for a burst, which turns an injection on and off repeatedly
 - Fault tags must be globally unique, or logging will be incorrect. This restriction is currently not enforced in code
-- The [FaultControllersREADME](FaultControllersREADME.md) contains detailed documentation about fault configuration expressiveness, which also applies to the fault injectors
+- The [FaultyControllers](FaultyControllers.md) contains detailed documentation about fault configuration expressiveness, which also applies to the fault injectors
   - One major difference is that `target_namespace_pid` is the process id of the node to inject on, whereas the `identifiers` in the config carry semantic meaning. Usually, the starter of the fault controller is responsible for translating a user-friendly format to the pids of nodes
   - A second difference is that the config expects fault types with a leading `link_fault:` or `node_fault:`. Fault injectors expect no such thing.
 

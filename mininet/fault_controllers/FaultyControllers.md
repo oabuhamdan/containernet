@@ -1,13 +1,13 @@
 # FaultControllers README
 
 This document describes in detail the different FaultControllers currently implemented in FaultyNet. 
-Each FaultController implements both a FaultController, and a FaultControllerStarter. For details see the [Faultynet Documentation](Documentation.md).
+Each FaultController implements both a FaultController, and a FaultControllerStarter. For details see the [Faultynet Documentation](Faultynet-Documentation.md).
 
 ## LogOnlyFaultController
 `LogOnlyFaultController` is a minimalist FaultController. It doesn't inject any faults, but does provide easy access
 to FaultyNets logging system, which allows for scheduled execution of arbitrary commands on arbitrary hosts.
 All other currently implemented FaultControllers also support this logging syntax.
-For details about the logs, read the [Faultynet Documentation](Documentation.md)
+For details about the logs, read the [Faultynet Documentation](Faultynet-Documentation.md)
 
 This is the full reference for the config file:
 ```yml
@@ -209,4 +209,4 @@ log: # Enable logging, without modifying options
 
 ## Implementing your own FaultController
 
-See [Documentation](Documentation.md)
+See [Faultynet Documentation](Faultynet-Documentation.md)

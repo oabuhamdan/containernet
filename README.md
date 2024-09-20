@@ -105,6 +105,11 @@ Make sure you are in the `containernet` directory. You can start an example topo
 sudo python3 examples/containernet_example.py
 ```
 
+With the recent update to Ubuntu 24.04, Containernet has to be installed and used in a venv. However, Mininet still requires root rights. You can start your topologies with:
+```bash
+sudo -E env PATH=$PATH python3 examples/containernet_example.py
+```
+
 After launching the emulated network, you can interact with the involved containers through Mininet's interactive CLI. You can for example:
 
 - use `containernet> d1 ifconfig` to see the config of container `d1`

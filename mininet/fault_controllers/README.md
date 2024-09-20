@@ -8,16 +8,57 @@ At this point in time three different fault controller are implemented:
 - RandomLinkFaultController, which inserts pre-defined faults into randomly selected links
 - MostUsedFaultController, which inserts pre-defined faults into the busiest links
 
-For more details on how to use these fault controller see the [FaultControllersREADME](FaulControllersREADME.md) file.
-For more implementation details see the [Documentation](Documentation.md) file.
+For more details on how to use these fault controller see the [FaultControllersREADME](FaultyControllers.md) file.
+For more implementation details see the [Documentation](Faultynet-Documentation.md) file.
 
 ## Installation
 Faultynet requires `libcgroup1` to be installed on your system. This package is (as of time of writing) not present in apt for ubuntu 24.04, but you can still find .deb files on the internet to install.
 
-Faultynet also needs legacy cgroups. You need to add `SYSTEMD_CGROUP_ENABLE_LEGACY_FORCE=1 systemd.unified_cgroup_hierarchy=0` to your kernel parameters and reboot. If you are using grub, you can add this parameters by appending them to `GRUB_CMDLINE_LINUX_DEFAULT` in `/etc/default/grub` and running `sudo grub-mkconfig -o /boot/grub/grub.cfg`
+Faultynet also needs legacy cgroups. You need to add `SYSTEMD_CGROUP_ENABLE_LEGACY_FORCE=1` and `systemd.unified_cgroup_hierarchy=0` to your kernel parameters and reboot. 
+
+If you are using GRUB, you can add this parameters by appending them to `GRUB_CMDLINE_LINUX_DEFAULT` and `GRUB_CMDLINE_LINUX` in `/etc/default/grub` and running `sudo grub-mkconfig -o /boot/grub/grub.cfg`
+```bash
+sudo vim /etc/default/grub
+```
+Add the systemd.unified_cgroup_hierarchy=0 parameter inside the quotes
+```bash
+GRUB_CMDLINE_LINUX_DEFAULT="systemd.unified_cgroup_hierarchy=0"
+GRUB_CMDLINE_LINUX="systemd.unified_cgroup_hierarchy=0"
+```
+Update GRUB to apply the changes:
+```bash
+sudo grub-mkconfig -o /boot/grub/grub.cfg
+```
+Reboot your system to apply. 
+
+## Running a basic example
+
+
+Make sure you are in the `faultynet` directory. You can start a simple example topology with some nodes and some faults
+through one of the provided examples:
+
+```bash
+sudo python3 examples/faultinjector_examples/traffic_with_loss_example.py
+```
+This example, as well as the other ones, launch a net, inject faults into that net, and then shutdown. This process
+mirrors how Faultynet might be used in a CI pipeline.
+Each test case comes with a .yml config file which shares its name. To modify the faults injected in the `traffic_with_loss.py` example
+modify the `traffic_with_loss.yml` file in the same folder.
+
+Currently, all examples use the only implemented FaultController, `ConfigFileFaultController`, which was designed for
+repeatable usage in testing pipelines and offers limited interactivity. This fault controller is automatically started
+when the corresponding net ist started, and faults are activated and deactivated based on a timer.
+For more interactivity, Mininets `CLI()` method can be called and used normally, but due to the timer-based fault scheduling of
+`ConfigFileFaultController` this comes with inherent limitations.
+
+For more details about available controllers, see [FaultControllersREADME.md]([FaultControllersREADME.md]).
+
 
 ## Hello World
-After installation, create a yml file with the following contents:
+Using Faultynet is very similar to using Containernet or Mininet. If you're inexperienced wtih Mininet I recommend the
+[official documentation](https://github.com/mininet/mininet/wiki/Introduction-to-Mininet) as a starting point. 
+
+Get started for generating your own faulty networks by creating a yml file with the following contents:
 ```yaml
 ---
 faults:
@@ -71,82 +112,9 @@ Beyond Mininet's and Containernet's features, Faultynet allows you to
 ### Planned Features
 - Remove limitations, to allow faults on limited links, multiple faults per interface, and within docker containers
 
-
-
-## Installation
-
-Faultynets installation has been verified to work on a freshly downloaded Ubuntu 22.04. instance. 
-Older versions of Ubuntu should work with only minimal modifications, but have not been tested at this point in time.
-
-Since installation instructions include the modification of cgroup settings I recommend installing
-Faultynet in a VM.
-
-An importable VM of Ubuntu server 22.04. with Faultynet installed is available [here](https://drive.google.com/file/d/1J2MAifNj47acilFd-AgacxVR-wNcMHSj/view?usp=drive_link)
-
-### Bare-metal installation
-
-This option is the most flexible. These installation steps were tested for an up-to-date
-freshly set up Ubuntu **22.04 LTS**.
-
-
-First change your grub configuration from cgroup2 to cgroup1 by running the following commands:
-```bash
-sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="systemd.unified_cgroup_hierarchy=0 /g' /etc/default/grub
-sudo update-grub
-```
-Then `reboot` your device to apply these changes.
-
-Install Ansible:
-```bash
-sudo apt-get install ansible
-```
-
-Then clone the repository:
-
-```bash
-git clone https://github.com/ADimeo/faultynet.git
-```
-
-Finally, run the Ansible playbook to install required dependencies:
-Note: This script depends on the file containing the repo being named `faultynet`
-
-```bash
-sudo ansible-playbook -i "localhost," -c local faultynet/ansible/install.yml
-```
-
-After the installation finishes, you should be able to [get started](#get-started).
-
-## Getting started
-
-Using Faultynet is very similar to using Containernet or Mininet. If you're inexperienced wtih Mininet I recommend the
-[official documentation](https://github.com/mininet/mininet/wiki/Introduction-to-Mininet) as a starting point. 
-
-### Running a basic example
-
-
-Make sure you are in the `faultynet` directory. You can start a simple example topology with some nodes and some faults
-through one of the provided examples:
-
-```bash
-sudo python3 examples/faultinjector_examples/traffic_with_loss_example.py
-```
-This example, as well as the other ones, launch a net, inject faults into that net, and then shutdown. This process
-mirrors how Faultynet might be used in a CI pipeline.
-Each test case comes with a .yml config file which shares its name. To modify the faults injected in the `traffic_with_loss.py` example
-modify the `traffic_with_loss.yml` file in the same folder.
-
-Currently, all examples use the only implemented FaultController, `ConfigFileFaultController`, which was designed for
-repeatable usage in testing pipelines and offers limited interactivity. This fault controller is automatically started
-when the corresponding net ist started, and faults are activated and deactivated based on a timer.
-For more interactivity, Mininets `CLI()` method can be called and used normally, but due to the timer-based fault scheduling of
-`ConfigFileFaultController` this comes with inherent limitations.
-
-For more details about available controllers, see [FaultControllersREADME.md]([FaultControllersREADME.md]).
-
-
 ## Documentation
-Faultynets documentation is contained in two files: [FaultControllersREADME](FaulControllersREADME.md) contains details about
-different types of available fault controllers, whereas [Documentation](Documentation.md) contains information about
+Faultynets documentation is contained in two files: [FaultControllersREADME](FaultyControllers.md) contains details about
+different types of available fault controllers, whereas [Documentation](Faultynet-Documentation.md) contains general information about Faultynet.
 Containernet's documentation can be found in the [GitHub wiki](https://github.com/containernet/containernet/wiki).
 Faultynets additions are also discussed in a [masters thesis](hand-in-version.pdf), which is contained in this repo for ease of access.
 The documentation for the underlying Mininet project can be found on the [Mininet website](http://mininet.org/).

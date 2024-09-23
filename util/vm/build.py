@@ -929,7 +929,7 @@ def runTests( vm, tests=None, pre='', post='', prompt=Prompt, uninstallNtpd=Fals
 
 def getMininetVersion( vm ):
     "Run mn to find Mininet version in VM"
-    vm.sendline( '(cd ~/mininet; PYTHONPATH=. bin/mn --version)' )
+    vm.sendline( '(cd ~/mininet; PYTHONPATH=. mininet/mn.py --version)' )
     # Eat command line echo, then read output line
     vm.readline()
     version = vm.readline().strip()

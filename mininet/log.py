@@ -22,6 +22,7 @@ LEVELS = { 'debug': logging.DEBUG,
 # change this to logging.INFO to get printouts when running unit tests
 LOGLEVELDEFAULT = OUTPUT
 
+
 # default: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOGMSGFORMAT = '%(message)s'
 
@@ -134,7 +135,8 @@ class MininetLogger( Logger, object ):
         if getattr( self.manager, 'disabled', 0 ) >= OUTPUT:
             return
         if self.isEnabledFor( OUTPUT ):
-            self._log( OUTPUT, msg, args, kwargs )
+            kwargs['stacklevel'] = kwargs.get('stacklevel', 1) + 1
+            self._log( OUTPUT, msg, args, **kwargs )
 
 
 # Make things a bit more convenient by adding aliases
@@ -147,12 +149,15 @@ def makeListCompatible( fn ):
     """Return a new function allowing fn( 'a 1 b' ) to be called as
        newfn( 'a', 1, 'b' )"""
 
-    def newfn( *args ):
+    def newfn( *args,  **kwargs):
         "Generated function. Closure-ish."
+        # Add stacklevel argument, or all linenos will point to
+        # this function
+        kwargs['stacklevel'] = kwargs.get('stacklevel', 1) + 1
         if len( args ) == 1:
-            return fn( *args )
+            return fn( *args, **kwargs )
         args = ' '.join( str( arg ) for arg in args )
-        return fn( args )
+        return fn( args, **kwargs )
 
     # Fix newfn's name and docstring
     setattr( newfn, '__name__', fn.__name__ )

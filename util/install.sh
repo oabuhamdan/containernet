@@ -48,9 +48,7 @@ if [ "$DIST" = "Ubuntu" ] || [ "$DIST" = "Debian" ]; then
 fi
 test -e /etc/fedora-release && DIST="Fedora"
 test -e /etc/redhat-release && DIST="RedHatEnterpriseServer"
-test -e /etc/centos-release && DIST="CentOS"
-
-if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
+if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" ]; then
     install='sudo yum -y install'
     remove='sudo yum -y erase'
     pkginst='sudo rpm -ivh'
@@ -85,7 +83,7 @@ KERNEL_HEADERS=kernel-headers-${KERNEL_NAME}
 # Treat Raspbian as Debian
 [ "$DIST" = 'Raspbian' ] && DIST='Debian'
 
-DISTS='Ubuntu|Debian|Fedora|RedHatEnterpriseServer|SUSE LINUX|CentOS'
+DISTS='Ubuntu|Debian|Fedora|RedHatEnterpriseServer|SUSE LINUX'
 if ! echo $DIST | egrep "$DISTS" >/dev/null; then
     echo "Install.sh currently only supports $DISTS."
     exit 1
@@ -138,10 +136,6 @@ OVS_TAG=v$OVS_RELEASE
 
 OF13_SWITCH_REV=${OF13_SWITCH_REV:-""}
 
-function pre_build {
-    cd $BUILD_DIR
-    rm -rf openflow pox oftest oflops ofsoftswitch13 loxigen ivs ryu noxcore nox13oflib
-}
 
 function kernel {
     echo "Install Mininet-compatible kernel if necessary"
@@ -167,7 +161,7 @@ function kernel_clean {
 # Install Mininet deps
 function mn_deps {
     echo "Installing Mininet dependencies"
-    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
+    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" ]; then
         $install gcc make socat psmisc xterm openssh-clients iperf \
             iproute telnet python-setuptools libcgroup-tools \
             ethtool help2man net-tools
@@ -179,23 +173,8 @@ function mn_deps {
 			ethtool help2man python-pyflakes python3-pylint \
                         python-pep8 ${PYPKG}-pexpect ${PYPKG}-tk
     else  # Debian/Ubuntu
-        pf=pyflakes
-        pep8=pep8
-        # Starting around 20.04, installing pyflakes instead of pyflakes3
-        # causes Python 2 to be installed, which is exactly NOT what we want.
-        if [ "$DIST" = "Ubuntu" -a `expr $RELEASE '>=' 20.04` = "1" ]; then
-                pf=pyflakes3
-        fi
-        # Debian 11 "bullseye" renamed 
-        # * pep8 to python3-pep8
-        # * pyflakes to pyflakes3
-        if [ "$DIST" = "Debian" -a `expr $RELEASE '>=' 11` = "1" ]; then
-                pf=pyflakes3
-                pep8=python3-pep8
-        fi
-
         $install gcc make socat psmisc xterm ssh iperf telnet \
-                 ethtool help2man $pf pylint $pep8 \
+                 ethtool help2man pyflakes3 pylint python3-pep8 \
                  net-tools \
                  ${PYPKG}-pexpect ${PYPKG}-tk
         # Install pip
@@ -213,9 +192,9 @@ function mn_deps {
         $install cgroup-tools || $install cgroup-bin
     fi
 
-    echo "Installing Mininet core"
+    echo "Installing Containernet core"
     pushd $MININET_DIR/containernet
-    sudo PYTHON=${PYTHON} make install
+    sudo PYTHON=${PYTHON} make install-mnexec install-manpages
     popd
 }
 
@@ -237,7 +216,7 @@ function of {
     echo "Installing OpenFlow reference implementation..."
     cd $BUILD_DIR
     $install autoconf automake libtool make gcc
-    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
+    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" ]; then
         $install git pkgconfig glibc-devel
 	elif [ "$DIST" = "SUSE LINUX"  ]; then
        $install git pkgconfig glibc-devel
@@ -246,11 +225,14 @@ function of {
     fi
     # was: git clone git://openflowswitch.org/openflow.git
     # Use our own fork on github for now:
-    git clone https://github.com/mininet/openflow.git
+    git clone https://github.com/mininet/openflow
     cd $BUILD_DIR/openflow
 
     # Patch controller to handle more than 16 switches
     patch -p1 < $MININET_DIR/containernet/util/openflow-patches/controller.patch
+
+    # Fix common bug under ubuntu where strlcpy is already defined
+    patch -p1 < $MININET_DIR/containernet/util/openflow-patches/strlcpy.patch
 
     # Resume the install:
     ./boot.sh
@@ -306,7 +288,7 @@ function of13 {
 function install_wireshark {
     if ! which wireshark; then
         echo "Installing Wireshark"
-        if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
+        if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" ]; then
             $install wireshark wireshark-gnome
 		elif [ "$DIST" = "SUSE LINUX"  ]; then
 			$install wireshark
@@ -335,18 +317,7 @@ function install_wireshark {
 
     # Copy into plugin directory
     # libwireshark0/ on 11.04; libwireshark1/ on later
-
-    if [ "$ARCH" = "amd64" ]; then
-        WSDIR=`find /usr/lib64 -type d -name 'wireshark*' | head -1`
-	    if [ -z "$WSDIR" ]; then
-            WSDIR=`find /usr/lib64 -type d -name 'libwireshark*' | head -1`
-        fi
-    else
-        WSDIR=`find /usr/lib -type d -name 'wireshark*' | head -1`
-        if [ -z "$WSDIR" ]; then
-            WSDIR=`find /usr/lib -type d -name 'libwireshark*' | head -1`
-        fi
-    fi
+    WSDIR=`find /usr/lib* -type d -name '*wireshark*' | head -1`
     WSPLUGDIR=$WSDIR/plugins/
     PLUGIN=loxi_output/wireshark/openflow.lua
     sudo cp $PLUGIN $WSPLUGDIR
@@ -435,7 +406,7 @@ function ubuntuOvs {
 function ovs {
     echo "Installing Open vSwitch..."
 
-    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
+    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" ]; then
         $install openvswitch
         if ! $install openvswitch-controller; then
             echo "openvswitch-controller not installed"
@@ -662,7 +633,7 @@ function oftest {
 function cbench {
     echo "Installing cbench..."
 
-    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
+    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" ]; then
         $install net-snmp-devel libpcap-devel libconfig-devel
 	elif [ "$DIST" = "SUSE LINUX"  ]; then
 		$install net-snmp-devel libpcap-devel libconfig-devel
@@ -738,7 +709,7 @@ net.ipv6.conf.lo.disable_ipv6 = 1' | sudo tee -a /etc/sysctl.conf > /dev/null
     $install ntp
 
     # Install vconfig for VLAN example
-    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
+    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" ]; then
         $install vconfig
     else
         $install vlan
@@ -788,7 +759,6 @@ function all {
         exit 3
     fi
     echo "Installing all packages except for -eix (doxypy, ivs, nox-classic)..."
-    pre_build
     kernel
     mn_deps
     # Skip mn_doc (doxypy/texlive/fonts/etc.) because it's huge

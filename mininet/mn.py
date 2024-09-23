@@ -20,7 +20,7 @@ from optparse import OptionParser  # pylint: disable=deprecated-module
 from sys import exit  # pylint: disable=redefined-builtin
 
 # Fix setuptools' evil madness, and open up (more?) security holes
-if 'PYTHONPATH' in os.environ:
+if 'PYTHONPATH'  in os.environ:
     sys.path = os.environ[ 'PYTHONPATH' ].split( ':' ) + sys.path
 
 # pylint: disable=wrong-import-position
@@ -429,8 +429,7 @@ class MininetRunner( object ):
         elapsed = float( time.time() - start )
         info( 'completed in %0.3f seconds\n' % elapsed )
 
-
-if __name__ == "__main__":
+def main():
     try:
         MininetRunner()
     except KeyboardInterrupt:
@@ -449,3 +448,6 @@ if __name__ == "__main__":
         stackTrace = traceback.format_exc()
         debug( stackTrace + "\n" )
         cleanup()
+
+if __name__ == "__main__":
+    main()

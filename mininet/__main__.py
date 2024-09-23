@@ -1,1 +1,1 @@
-../bin/mn
+mn.py

@@ -71,4 +71,3 @@
     shell: docker pull ubuntu:trusty
     tags:
       - notindocker
-
